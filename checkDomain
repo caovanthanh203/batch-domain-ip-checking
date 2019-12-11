@@ -1,0 +1,54 @@
+#!/bin/bash
+#edit here
+old_ip="172.217.163.238" #OLD VPS IPV4
+new_ip="" #NEW VPS IPV4
+domains=(
+google.com
+)
+#stop here
+
+echo -e "\n----------- CLUES -----------"
+echo -e "\e[41mRED\e[0m: domain is pointing to OLD VPS IPv4\e[0m"
+echo -e "\e[43mYELLOW\e[0m: domain is pointing to OTHER VPS IPv4\e[0m"
+echo -e "\e[42mGREEN\e[0m: domain is pointing to NEW VPS IPv4\e[0m"
+echo -e "-------------------------------\n"
+echo -e "----------- CHECKING RESULTS -----------\n"
+
+good_count=0
+bad_count=0
+err_count=0
+total=0
+
+for domain in "${domains[@]}"
+	do
+		((total+=1))
+		IP=$(ping -q -c 1 -t 1 $domain -4 | grep PING | sed -e "s/).*//" | sed -e "s/.*(//")
+		if [[ ! -z $IP ]]
+		then
+			if [[ ! -z $new_ip ]]
+			then
+				if [ $IP == $new_ip ]
+				then
+					echo -e "\e[42m$domain\e[0m\n"
+					((good_count+=1))
+					continue
+				fi
+			fi
+			if [[ ! -z $old_ip ]]
+			then
+				if [ $IP == $old_ip ]
+				then
+					echo -e "\e[41m$domain\e[0m\n"
+					((bad_count+=1))
+					continue
+				fi
+			fi
+		fi
+		echo -e "\e[43m$domain\e[0m\n"
+		((err_count+=1))
+done
+echo -e "------------ CHECKING SUMARY -----------"
+echo -e "\e[41mOLD\e[0m: $bad_count\e[0m\t\e[42mNEW\e[0m: $good_count\e[0m\t\e[43mUNKNOWN\e[0m: $err_count\e[0m"
+echo "Total checked: $total"
+echo -e "----------------------------------------"
+
